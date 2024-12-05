@@ -1,5 +1,5 @@
 import { User } from "../Model/User.Model.js";
-
+import mongoose from "mongoose";
 export const addBill = async (req, res) => {
   try {
     const {title, cost, description, date } = req.body;
@@ -63,30 +63,55 @@ export const addBill = async (req, res) => {
   }
 };
 
+
+// import mongoose from "mongoose";
+
 export const getDayExpense = async (req, res) => {
-  const user = req.user; // Assumes user data is preloaded via middleware
-  const { date } = req.body;
+  const userId = req.user._id; // User ID from middleware
+  const { date } = req.body;  // Expected format: DD-MM-YYYY
 
   try {
-    // Find the expense for the given date
-    const expenses = user.expenses.find((item) => item.date === date);
+    console.log("Date from request:", date);
 
-    if (!expenses) {
+    // Use MongoDB's aggregation to filter expenses for the specific date
+    const result = await User.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(userId) } }, // Match user by ID
+      {
+        $project: {
+          expenses: {
+            $filter: {
+              input: "$expenses", // Array to filter
+              as: "expense",      // Alias for each array element
+              cond: { $eq: ["$$expense.date", date] }, // Match on DD-MM-YYYY format
+            },
+          },
+        },
+      },
+    ]);
+
+    console.log("Aggregation Result:", result);
+
+    // Handle no result or empty expenses
+    if (!result || result.length === 0 || result[0].expenses.length === 0) {
       return res.status(200).json({
         status: "Success",
         message: "No expenses found for the given date",
         data: {
           total: 0,
+          bills: [],
         },
       });
     }
+
+    // Extract the day's expenses
+    const { total, bills } = result[0].expenses[0]; // First matching expense
 
     return res.status(200).json({
       status: "Success",
       message: "Request Resolved",
       data: {
-        total: expenses.total,
-        bills: expenses.bills, // Accessing the correct field `bills`
+        total: total || 0,
+        bills: bills || [],
       },
     });
   } catch (error) {
@@ -98,49 +123,60 @@ export const getDayExpense = async (req, res) => {
   }
 };
 
+
 // get month
+
 
 export const getMonthExpense = async (req, res) => {
   try {
-    const user = req.user; // Assumes `req.user` is populated by middleware
+    const userId = req.user._id; // Get the user ID from middleware
     const { month, year } = req.body;
 
     // Validate month and year input
     if (!month || !year) {
-      return res
-        .status(400)
-        .json({
-          status: "Bad Request",
-          message: "Month and year are required",
-        });
+      return res.status(400).json({
+        status: "Bad Request",
+        message: "Month and year are required",
+      });
     }
 
-    const monthStr = String(month).padStart(2, "0"); // Ensure month is two digits
+    const monthStr = String(month).padStart(2, "0"); // Ensure month is in two-digit format
     const yearStr = String(year); // Ensure year is a string
 
-    // Filter expenses by the given month and year
-    const dailyExpenses = user.expenses
-      .filter((expense) => {
-        const [day, expenseMonth, expenseYear] = expense.date.split("-");
-        return expenseMonth === monthStr && expenseYear === yearStr;
-      })
-      .map((expense) => ({
-        date: expense.date,
-        total: expense.total,
-        bills: expense.bills,
-      }));
+    // Use aggregation to filter expenses for the given month and year
+    const result = await User.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(userId) } }, // Match user by ID
+      {
+        $project: {
+          expenses: {
+            $filter: {
+              input: "$expenses", // Array to filter
+              as: "expense",      // Alias for each array element
+              cond: {
+                $and: [
+                  { $eq: [{ $substr: ["$$expense.date", 3, 2] }, monthStr] }, // Match month
+                  { $eq: [{ $substr: ["$$expense.date", 6, 4] }, yearStr] },  // Match year
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]);
 
-    if (dailyExpenses.length === 0) {
+    // If no expenses found, return a 404 response
+    if (!result || result.length === 0 || result[0].expenses.length === 0) {
       return res.status(404).json({
         status: "Not Found",
         message: "No expenses found for the given month and year",
       });
     }
 
+    // Return the filtered expenses
     return res.status(200).json({
       status: "Success",
-      message: "Daily expenses retrieved successfully",
-      data:dailyExpenses,
+      message: "Monthly expenses retrieved successfully",
+      data: result[0].expenses, // Filtered expenses
     });
   } catch (error) {
     console.error("Error in getMonthExpense:", error.message);
@@ -150,6 +186,7 @@ export const getMonthExpense = async (req, res) => {
     });
   }
 };
+
 
 export const getPastThreeMonthsExpenses = async (req, res) => {
   try {

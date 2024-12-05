@@ -30,7 +30,7 @@ function App() {
       {/* Conditionally render Header */}
       {isAuthenticated && <Header  update={update}/>}
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage update={update}/>} />
         <Route
           path="/login"
           element={
