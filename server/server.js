@@ -10,7 +10,7 @@ const App = express();
 connectToDB();
 
 // Allow all origins with CORS
-App.use(cors({ origin: "*", credentials: true }));
+App.use(cors({ origin: "https://expensevista.netlify.app", credentials: true }));
 
 App.use(express.json());
 App.use(cookieParser());
