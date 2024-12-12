@@ -8,7 +8,7 @@ import cors from "cors"; // Import cors
 
 const App = express();
 connectToDB();
-App.use(cors({ origin:['http://localhost:5173','https://livescript.netlify.app/'],credentials: true }));
+App.use(cors({ origin:['http://localhost:5173','https://expensevista.netlify.app/'],credentials: true }));
 
 App.use(express.json());
 App.use(cookieParser());
