@@ -1,4 +1,4 @@
-import express,{urlencoded} from "express";
+import express, { urlencoded } from "express";
 import connectToDB from "./DB/db.js";
 import router from "./Routes/userRouter.js";
 import cookieParser from "cookie-parser";
@@ -8,7 +8,9 @@ import cors from "cors"; // Import cors
 
 const App = express();
 connectToDB();
-App.use(cors({ origin:['http://localhost:5173','https://expensevista.netlify.app/'],credentials: true }));
+
+// Allow all origins with CORS
+App.use(cors({ origin: "*", credentials: true }));
 
 App.use(express.json());
 App.use(cookieParser());
