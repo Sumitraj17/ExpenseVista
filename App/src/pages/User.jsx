@@ -11,7 +11,7 @@ function UserProfile() {
 
   const fetchData = async () => {
     try {
-      const resp = await axios.get("http://localhost:5000/expense/details", {
+      const resp = await axios.get("https://expensevista.onrender.com/expense/details", {
         withCredentials: true,
       });
       const data = resp.data;

@@ -49,7 +49,7 @@ function MonthlyExpensesCalendar() {
   const handleSubmit = async (form) => {
     try {
       const resp = await axios.post(
-        "http://localhost:5000/expense/addBill",
+        "https://expensevista.onrender.com/expense/addBill",
         { title: form.title, cost: form.cost, description: form.description, date: form.date },
         { withCredentials: true }
       );
@@ -70,7 +70,7 @@ function MonthlyExpensesCalendar() {
   const fetchEvents = async (month, year) => {
     try {
       const resp = await axios.post(
-        "http://localhost:5000/expense/monthly",
+        "https://expensevista.onrender.com/expense/monthly",
         { month, year },
         { withCredentials: true }
       );

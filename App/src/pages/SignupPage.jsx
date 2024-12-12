@@ -26,7 +26,7 @@ const SignupPage = () => {
     try {
       // Replace with your API endpoint
       const response = await axios.post(
-        "http://localhost:5000/user/register",
+        "https://expensevista.onrender.com/user/register",
         {
           firstname: form.firstname,
           lastname: form.lastname,
