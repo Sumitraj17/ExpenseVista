@@ -21,7 +21,7 @@ const Header = (props) => {
       toast.success("You have logged out successfully!");
 
       // Redirect the user to the login page or home page
-      navigate("/login"); // Or any other route as per your needs
+      navigate("/"); // Or any other route as per your needs
       update(false);
       // Reset states
       setUser(true);
